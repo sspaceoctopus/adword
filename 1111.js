@@ -23,47 +23,47 @@ function getDataFromXml() {
     var orders = entries.getChildren('item');
     //Logger.log(orders.length+" items");
     var prices = {};
-	for (var i = 0; i < orders.length; i++) {
-		var url = cleanUrl(orders[i].getChildText('url'));
-		var name = orders[i].getChildText('name');
-		var price = parseFloat(orders[i].getChildText('priceRUAH').toString());
-		var inStock = (orders[i].getChildText('stock') == 'В наличии');
-		var newRow ={};
-		if (prices[url]){
-			newRow = { 
-				'price' : price,
-				'inStock' : inStock
-			};
-			prices[url][name] = newRow;
-		}
-		else{
-			newRow[name] = { 
-				'price' : price,
-				'inStock' : inStock
-			};
-			prices[url] = newRow;
-		}
-	}
+    for (var i = 0; i < orders.length; i++) {
+        var url = cleanUrl(orders[i].getChildText('url'));
+        var name = orders[i].getChildText('name');
+        var price = parseFloat(orders[i].getChildText('priceRUAH').toString());
+        var inStock = (orders[i].getChildText('stock') == 'В наличии');
+        var newRow ={};
+        if (prices[url]){
+            newRow = {
+                'price' : price,
+                'inStock' : inStock
+            };
+            prices[url][name] = newRow;
+        }
+        else{
+            newRow[name] = {
+                'price' : price,
+                'inStock' : inStock
+            };
+            prices[url] = newRow;
+        }
+    }
     return prices
 }
 
 function setKeywordPrice(keyword, prices,adGroupName) {
     var keywordId = keyword.getId();
-	if (keywords[keywordId]) {} else {
+    if (keywords[keywordId]) {} else {
         for (var name in prices) {
-			if(name == adGroupName){
-              var curPrice =  prices[name].price.toString();
-              keyword.setAdParam(1, curPrice);
-              Logger.log('name: '+name+'adgroup: '+adGroupName+ 'Keyword: '+keyword+', Price: '+curPrice);
-			  keywords[keywordId] = true;
-			}
+            if(name.trim() == adGroupName){
+                var curPrice =  prices[name].price.toString();
+                keyword.setAdParam(1, curPrice);
+                Logger.log('Name: '+name+' Adgroup: '+adGroupName+ 'Keyword: '+keyword+', Price: '+curPrice);
+                keywords[keywordId] = true;
+            }
         }
-    }	
+    }
 }
 
 function setAdPrice(ad, prices) {
     var keywords = ad.getAdGroup().keywords().get();
-	var adGroupName = ad.getAdGroup().getName();
+    var adGroupName = ad.getAdGroup().getName();
     while(keywords.hasNext()) {
         var keyword = keywords.next();
         setKeywordPrice(keyword, prices,adGroupName);
@@ -102,7 +102,7 @@ function main() {
     while (campIter.hasNext()) {
         var camp = campIter.next();
         var adIter = buildSelector(camp, 'Ad');
-		adIter = adIter.withCondition("CampaignName CONTAINS_IGNORE_CASE '"+ CAMPAIGN_NAME +"'")
+        adIter = adIter.withCondition("CampaignName CONTAINS_IGNORE_CASE '"+ CAMPAIGN_NAME +"'")
         //adIter = adIter.withCondition('LabelNames CONTAINS_ANY [' + LABEL_NAMES.join(',') + ']');
         adIter = adIter.get();
         //Logger.log(adIter.totalNumEntities());
@@ -112,17 +112,17 @@ function main() {
             if (url === null)
                 continue;
             url = cleanUrl(url);
-			if(prices[url]){
-				try {
-                setAdPrice(entity, prices[url]);
-                //Logger.log('Url: '+url+'; Price: '+prices[url]+'; Entity: '+entity);
-				} 
-				catch(e) {
-					Logger.log('There was an issue setting:' + url + ' price , Skipping. '+e);
-					continue;
-				}
-			}
-            
+            if(prices[url]){
+                try {
+                    setAdPrice(entity, prices[url]);
+                    //Logger.log('Url: '+url+'; Price: '+prices[url]+'; Entity: '+entity);
+                }
+                catch(e) {
+                    Logger.log('There was an issue setting:' + url + ' price , Skipping. '+e);
+                    continue;
+                }
+            }
+
             //Logger.log('Url: '+url+' price is '+prices[url]);
 
             if(alreadyCheckedUrls[url]) {
